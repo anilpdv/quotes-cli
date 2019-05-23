@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 const program = require('commander');
-const {prompt} = require('inquirer');
 const chalk = require('chalk');
 const {get_quote} = require('./index');
 const {request_quotes, request_quotes_bulk} = require('./src/routes.data');
