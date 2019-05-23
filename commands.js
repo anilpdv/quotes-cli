@@ -2,7 +2,7 @@
 const program = require('commander');
 const chalk = require('chalk');
 const {request_quotes, request_quotes_bulk} = require('./src/routes.data');
-program.version('1.0.4').description('quotes-cli');
+program.version('1.0.5').description('quotes-cli');
 
 // : generates random quote
 program
