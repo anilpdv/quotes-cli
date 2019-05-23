@@ -1,9 +1,7 @@
 const axios = require('axios');
 const chalk = require('chalk');
-const figlet = require('figlet');
 const clear = require('clear');
 const rn = require('random-number');
-const Promise = require('bluebird');
 const {
   BASEURL,
   URL_page,
