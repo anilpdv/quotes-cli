@@ -1,7 +1,7 @@
 # quotes-cli
 
 
-[![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger)
+[![Build Status](https://travis-ci.org/joemccann/dillinger.svg?branch=master)](https://travis-ci.org/joemccann/dillinger) [![Greenkeeper badge](https://badges.greenkeeper.io/anilpdv/quotes-cli.svg)](https://greenkeeper.io/)
 
 quotes-cli is random quote generator for terminal for fun.
 
