@@ -1,8 +1,8 @@
-const BASEURL = 'http://rest.quotesapi.ml';
-const URL_page = '/page/';
-const SUBURL_tag = '/tag/';
-const SUBURL_search = '/search/';
-const SUBURL_quotes = '/quotes/';
+const BASEURL = "https://quotesappapi.herokuapp.com";
+const URL_page = "/page/";
+const SUBURL_tag = "/tag/";
+const SUBURL_search = "/search/";
+const SUBURL_quotes = "/quotes/";
 
 module.exports = {
   BASEURL,
