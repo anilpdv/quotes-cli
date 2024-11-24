@@ -1,10 +1,11 @@
 {
   "name": "quotes-cli",
-  "version": "1.0.6",
-  "description": "generates random quotes",
+  "version": "1.1.0",
+  "description": "Generates random quotes",
   "main": "commands.js",
   "preferGlobal": true,
   "bin": "./commands.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -12,14 +13,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.19.0",
-    "chalk": "^2.4.2",
-    "cheerio": "^1.0.0-rc.10",
+    "axios": "^1.7.7",
+    "chalk": "^5.3.0",
+    "cheerio": "^1.0.0",
     "clear": "^0.1.0",
-    "commander": "^2.19.0",
+    "commander": "^12.1.0",
     "random-number": "0.0.9"
   },
-
   "repository": {
     "type": "git",
     "url": "https://github.com/anilpdv/quotes-cli"

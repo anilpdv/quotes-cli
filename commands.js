@@ -1,15 +1,17 @@
 #!/usr/bin/env node
-const program = require('commander');
-const chalk = require('chalk');
-const { requestQuotes, requestBulkQuotes } = require('./src/routes.data');
+import { Command } from 'commander';
+import chalk from 'chalk';
+import { requestQuotes, requestBulkQuotes } from './src/routes.data.js';
 
-program.version('1.0.6').description('quotes-cli');
+const program = new Command();
+
+program.version('1.1.0').description('quotes-cli');
 
 // Generates a random quote
 program
     .command('quote')
     .alias('q')
-    .description(chalk.blue('Get a random quote'))
+    .description('Get a random quote')
     .action(async () => {
         await requestQuotes(null, null);
     });
@@ -18,7 +20,7 @@ program
 program
     .command('tag <name>')
     .alias('t')
-    .description(chalk.blue('Get a random quote from a tag'))
+    .description('Get a random quote from a tag')
     .action(async (name) => {
         if (name) {
             await requestQuotes('tag', name);
@@ -31,7 +33,7 @@ program
 program
     .command('search <name>')
     .alias('s')
-    .description(chalk.blue('Get a random quote from an author or book'))
+    .description('Get a random quote from an author or book')
     .action(async (name) => {
         if (name) {
             await requestQuotes('search', name);
@@ -44,7 +46,7 @@ program
 program
     .command('bulk <number>')
     .alias('b')
-    .description(chalk.blue('Get a list of quotes (max 10)'))
+    .description('Get a list of quotes (max 10)')
     .action(async (number) => {
         const count = parseInt(number, 10);
         if (isNaN(count) || count <= 0) {
