@@ -1,132 +1,215 @@
 const axios = require('axios');
 const chalk = require('chalk');
 const clear = require('clear');
-const rn = require('random-number');
-const {
-  BASEURL,
-  URL_page,
-  SUBURL_tag,
-  SUBURL_search,
-  SUBURL_quotes,
-} = require('./constants.urls');
+const randomNumber = require('random-number');
+const cheerio = require('cheerio');
+const { URLSearchParams } = require('url');
 
-// : fetchdata
-let options = {
-  min: 0,
-  max: 99,
+const pageOptions = {
+  min: 1,
+  max: 100,
   integer: true,
 };
 
-let options2 = {
-  min: 0,
-  max: 29,
-  integer: true,
+/**
+ * Extracts quotes from the given Cheerio object.
+ *
+ * @param {CheerioStatic} $ - Cheerio object containing the HTML.
+ * @returns {Array} - Array of quote objects.
+ */
+const extractQuotes = ($) => {
+  const quotes = [];
+
+  $('.quoteText').each((_, element) => {
+    const quoteText = $(element).text().trim();
+
+    // Use regex to extract quote and author
+    const quoteMatch = quoteText.match(/“(.+?)”\s*―\s*(.+)/s);
+
+    if (quoteMatch) {
+      const quote = quoteMatch[1].replace(/\s+/g, ' ').trim();
+      const author = quoteMatch[2].split(',')[0].trim();
+      quotes.push({ quote, author });
+    }
+  });
+
+  return quotes;
 };
 
-let option3 = {
-  min: 0,
-  max: 19,
-  integer: true,
+/**
+ * Fetches quotes from the given URL.
+ *
+ * @param {string} url - URL to fetch quotes from.
+ * @returns {Promise<Array>} - Promise resolving to an array of quotes.
+ */
+const fetchQuotes = async (url) => {
+  try {
+    const response = await axios.get(url);
+    const html = response.data;
+    const $ = cheerio.load(html);
+    return extractQuotes($);
+  } catch (error) {
+    console.error(chalk.red('Error fetching quotes:'), error.message);
+    throw error;
+  }
 };
 
-let randomPage_tag = rn(options);
-let randomPage_search = rn(options2);
-let randomPage_quotes = rn(options);
-let randomQuote = rn(options2);
-let randomQuote_search = rn(option3);
-
-// : pretty print formatter
-let prettyPrint = error => {
+/**
+ * Displays a quote in the console.
+ *
+ * @param {Object} quote - Quote object containing quote and author.
+ */
+const displayQuote = (quote) => {
+  clear();
   console.log('');
-
   console.log(
-    '                                        ',
-    chalk.red(
-      'opps! search for wrong name ,or page would be not existed sorry.',
-    ),
+      '           ',
+      chalk.cyan.bold(`“${quote.quote}”`) + '  ',
+      ' - ',
+      chalk.green.italic(quote.author)
   );
   console.log(' ');
 };
 
-return_quote = {};
-const request = (url, sub_url) => {
-  axios
-    .get(url, {})
-    .then(resp => {
-      if (sub_url === 'search') {
-        var quote = resp.data.quotes[randomQuote_search].quote;
-        var author = resp.data.quotes[randomQuote_search].author;
-      } else {
-        var quote = resp.data.quotes[randomQuote].quote;
-        var author = resp.data.quotes[randomQuote].author;
-      }
-      clear();
-      console.log('');
-      console.log(
+/**
+ * Displays multiple quotes in the console.
+ *
+ * @param {Array} quotes - Array of quote objects.
+ */
+const displayQuotes = (quotes) => {
+  clear();
+  quotes.forEach((quote) => {
+    console.log('');
+    console.log(
         '           ',
-
-        chalk.cyan.bold(quote) + '  ',
+        chalk.cyan.bold(`“${quote.quote}”`) + '  ',
         ' - ',
-        chalk.green.italic(author),
-      );
-      console.log(' ');
-    })
-    .catch(err => {
-      clear();
-      console.log('');
+        chalk.green.italic(quote.author)
+    );
+    console.log(' ');
+  });
+};
 
-      console.log(
-        '                                        ',
-        chalk.red(
-          'opps! search for wrong name ,or page would be not existed sorry.',
-        ),
-      );
-      console.log(' ');
+/**
+ * Retrieves and displays a random quote.
+ */
+const getRandomQuote = async () => {
+  try {
+    const randomPage = randomNumber(pageOptions);
+    const url = `https://www.goodreads.com/quotes?page=${randomPage}`;
+    const quotes = await fetchQuotes(url);
+
+    if (quotes.length > 0) {
+      const randomIndex = randomNumber({ min: 0, max: quotes.length - 1, integer: true });
+      const selectedQuote = quotes[randomIndex];
+      displayQuote(selectedQuote);
+    } else {
+      console.log(chalk.yellow('No quotes found.'));
+    }
+  } catch {
+    console.error(chalk.red('Failed to get a random quote.'));
+  }
+};
+
+/**
+ * Retrieves and displays a random quote by tag.
+ *
+ * @param {string} tag - Tag to search for.
+ */
+const getRandomQuoteByTag = async (tag) => {
+  try {
+    const randomPage = randomNumber(pageOptions);
+    const params = new URLSearchParams({ page: randomPage });
+    const url = `https://www.goodreads.com/quotes/tag/${encodeURIComponent(tag)}?${params.toString()}`;
+    const quotes = await fetchQuotes(url);
+
+    if (quotes.length > 0) {
+      const randomIndex = randomNumber({ min: 0, max: quotes.length - 1, integer: true });
+      const selectedQuote = quotes[randomIndex];
+      displayQuote(selectedQuote);
+    } else {
+      console.log(chalk.yellow(`No quotes found for tag: ${tag}`));
+    }
+  } catch {
+    console.error(chalk.red(`Failed to get a quote for tag: ${tag}`));
+  }
+};
+
+/**
+ * Retrieves and displays a random quote by search query.
+ *
+ * @param {string} query - Search query.
+ */
+const getRandomQuoteBySearch = async (query) => {
+  try {
+    const randomPage = randomNumber(pageOptions);
+    const params = new URLSearchParams({
+      commit: 'Search',
+      page: randomPage,
+      q: query,
+      'search[filters]': 'quote',
+      utf8: '✓',
     });
-};
+    const url = `https://www.goodreads.com/quotes/search?${params.toString()}`;
+    const quotes = await fetchQuotes(url);
 
-const request_quotes = (suburl, para) => {
-  let url = '';
-  if (suburl === 'tag' && para) {
-    url = BASEURL + SUBURL_tag + para + URL_page + randomPage_tag;
-    request(url, 'tag');
-  } else if (suburl === 'search' && para) {
-    url = BASEURL + SUBURL_search + para + URL_page + randomPage_search;
-    request(url, 'search');
-  } else {
-    url = BASEURL + SUBURL_quotes + URL_page + randomPage_quotes;
-    request(url, 'quotes');
+    if (quotes.length > 0) {
+      const randomIndex = randomNumber({ min: 0, max: quotes.length - 1, integer: true });
+      const selectedQuote = quotes[randomIndex];
+      displayQuote(selectedQuote);
+    } else {
+      console.log(chalk.yellow(`No quotes found for search: ${query}`));
+    }
+  } catch {
+    console.error(chalk.red(`Failed to get a quote for search: ${query}`));
   }
 };
 
-const bulk_loader = (url, nu) => {
-  if (nu > 30 || nu < 0) {
-    clear();
-    console.log(chalk.red('out of bond search max and min are 0-30'));
-  } else {
-    axios
-      .get(url)
-      .then(resp => {
-        clear();
-        for (let i = 0; i < nu; i++) {
-          console.log('');
-          console.log(
-            '        ',
-            chalk.cyan.bold(resp.data.quotes[i].quote),
-            ' - ',
-            chalk.green.italic(resp.data.quotes[i].author),
-          );
-          console.log(' ');
-        }
-      })
-      .catch(err => {
-        console.log(chalk.red(' sorry , may be pages are missing '));
-      });
+/**
+ * Retrieves and displays a specified number of quotes.
+ *
+ * @param {number} n - Number of quotes to retrieve.
+ */
+const getBulkQuotes = async (n) => {
+  try {
+    const randomPage = randomNumber(pageOptions);
+    const url = `https://www.goodreads.com/quotes?page=${randomPage}`;
+    const quotes = await fetchQuotes(url);
+
+    if (quotes.length > 0) {
+      const selectedQuotes = quotes.slice(0, n);
+      displayQuotes(selectedQuotes);
+    } else {
+      console.log(chalk.yellow('No quotes found.'));
+    }
+  } catch {
+    console.error(chalk.red('Failed to get bulk quotes.'));
   }
 };
 
-const request_quotes_bulk = nu => {
-  let url = BASEURL + SUBURL_quotes;
-  bulk_loader(url, nu);
+/**
+ * Handles the request for quotes based on the command.
+ *
+ * @param {string|null} subCommand - Sub-command.
+ * @param {string|null} parameter - Parameter for the sub-command.
+ */
+const requestQuotes = async (subCommand, parameter) => {
+  if (subCommand === 'tag' && parameter) {
+    await getRandomQuoteByTag(parameter);
+  } else if (subCommand === 'search' && parameter) {
+    await getRandomQuoteBySearch(parameter);
+  } else {
+    await getRandomQuote();
+  }
 };
-module.exports = {request_quotes, request_quotes_bulk};
+
+/**
+ * Handles the request for bulk quotes.
+ *
+ * @param {number} count - Number of quotes to retrieve.
+ */
+const requestBulkQuotes = async (count) => {
+  await getBulkQuotes(count);
+};
+
+module.exports = { requestQuotes, requestBulkQuotes };
