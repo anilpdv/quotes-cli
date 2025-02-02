@@ -208,7 +208,7 @@ This tool scrapes data from Goodreads for personal use. Please comply with Goodr
 
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 
-Copyright © 2024 [Your Name](https://github.com/yourusername)
+Copyright © 2024 [anilpdv](https://github.com/anilpdv)
 
 </div>
 
@@ -216,7 +216,7 @@ Copyright © 2024 [Your Name](https://github.com/yourusername)
 
 <div align="center">
 
-Made with ❤️ by [your-username](https://github.com/yourusername)
+Made with ❤️ by [Anil Palli](https://github.com/anilpdv)
 
 **[⬆ back to top](#-quotes-cli)**
 
