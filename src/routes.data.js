@@ -128,8 +128,11 @@ const displayQuote = (quoteObj) => {
   clear();
   displayHeader();
 
-  const quoteText = gradient.summer(`"${quoteObj.quote}"`);
-  const authorText = chalk.greenBright.italic(`- ${quoteObj.author}`);
+  const customQuoteGradient = gradient(["#A1C4FD", "#C2E9FB"]);
+  const customAuthorGradient = gradient(["#00F260", "#0575E6"]);
+
+  const quoteText = customQuoteGradient(`"${quoteObj.quote}"`);
+  const authorText = chalk.italic(customAuthorGradient(`- ${quoteObj.author}`));
   const fullQuote = `${quoteText}\n\n${authorText}`;
 
   console.log(boxen(fullQuote, BOXEN_OPTIONS));
@@ -144,9 +147,14 @@ const displayQuotes = (quotes) => {
   clear();
   displayHeader();
 
+  const customQuoteGradient = gradient(["#A1C4FD", "#C2E9FB"]);
+  const customAuthorGradient = gradient(["#00F260", "#0575E6"]);
+
   quotes.forEach((quoteObj) => {
-    const quoteText = gradient.summer(`"${quoteObj.quote}"`);
-    const authorText = chalk.greenBright.italic(`- ${quoteObj.author}`);
+    const quoteText = customQuoteGradient(`"${quoteObj.quote}"`);
+    const authorText = chalk.italic(
+      customAuthorGradient(`- ${quoteObj.author}`),
+    );
     const fullQuote = `${quoteText}\n\n${authorText}`;
     console.log(boxen(fullQuote, BOXEN_OPTIONS));
   });
