@@ -1,35 +1,85 @@
-import axios from 'axios';
-import chalk from 'chalk';
-import clear from 'clear';
-import randomNumber from 'random-number';
-import * as cheerio from 'cheerio';
-import { URLSearchParams } from 'url';
+/**
+ * routes.data.js
+ *
+ * This module contains all functions for fetching, extracting, and displaying quotes
+ * from Goodreads. It separates the business logic from the CLI command handling,
+ * which improves maintainability and makes it easier for contributors to understand the code.
+ */
 
+import axios from "axios"; // For making HTTP requests
+import chalk from "chalk"; // For terminal string styling
+import clear from "clear"; // To clear the terminal
+import randomNumber from "random-number"; // To generate random numbers
+import * as cheerio from "cheerio"; // For parsing HTML
+import { URLSearchParams } from "url"; // To build URL query parameters
+import boxen from "boxen"; // To display text in a styled box
+import gradient from "gradient-string"; // To apply color gradients to text
+import figlet from "figlet"; // To generate ASCII art banners
+
+// -----------------------------------------------------------------------------
+// Global Configuration and Helper Constants
+// -----------------------------------------------------------------------------
+
+// Configuration for generating a random page number (from 1 to 100)
 const pageOptions = {
   min: 1,
   max: 100,
   integer: true,
 };
 
+// Constant for styling the box around the quotes
+const BOXEN_OPTIONS = {
+  padding: 1,
+  margin: 1,
+  borderColor: "magenta",
+  borderStyle: "round",
+};
+
 /**
- * Extracts quotes from the given Cheerio object.
+ * Returns a random index for an array of given length.
  *
- * @param {CheerioStatic} $ - Cheerio object containing the HTML.
- * @returns {Array} - Array of quote objects.
+ * @param {number} length - The length of the array.
+ * @returns {number} A random integer between 0 and length - 1.
+ */
+const getRandomIndex = (length) =>
+  randomNumber({ min: 0, max: length - 1, integer: true });
+
+// -----------------------------------------------------------------------------
+// Quote Extraction and Fetching Functions
+// -----------------------------------------------------------------------------
+
+/**
+ * Extracts quotes from a Cheerio-loaded HTML.
+ *
+ * It looks for elements with the class "quoteText" and extracts:
+ * - The quote text from the first text node.
+ * - The author from the first child with the class "authorOrTitle".
+ *
+ * @param {CheerioStatic} $ - The Cheerio instance loaded with HTML content.
+ * @returns {Array<{quote: string, author: string}>} Array of quote objects.
  */
 const extractQuotes = ($) => {
   const quotes = [];
 
-  $('.quoteText').each((_, element) => {
-    const quoteText = $(element).text().trim();
+  $(".quoteText").each((_, element) => {
+    const quoteElement = $(element);
 
-    // Use regex to extract quote and author
-    const quoteMatch = quoteText.match(/“(.+?)”\s*―\s*(.+)/s);
+    // Extract the raw quote text (first text node)
+    const rawQuote = quoteElement
+      .contents()
+      .filter((_, el) => el.type === "text")
+      .first()
+      .text()
+      .trim();
 
-    if (quoteMatch) {
-      const quote = quoteMatch[1].replace(/\s+/g, ' ').trim();
-      const author = quoteMatch[2].split(',')[0].trim();
-      quotes.push({ quote, author });
+    // Remove any leading/trailing quotes (both straight and fancy)
+    const cleanQuote = rawQuote.replace(/^["“”]+|["“”]+$/g, "").trim();
+
+    // Extract the author from the first element with class "authorOrTitle"
+    const author = quoteElement.find(".authorOrTitle").first().text().trim();
+
+    if (cleanQuote && author) {
+      quotes.push({ quote: cleanQuote, author });
     }
   });
 
@@ -37,10 +87,10 @@ const extractQuotes = ($) => {
 };
 
 /**
- * Fetches quotes from the given URL.
+ * Fetches HTML content from a URL and extracts quotes.
  *
- * @param {string} url - URL to fetch quotes from.
- * @returns {Promise<Array>} - Promise resolving to an array of quotes.
+ * @param {string} url - The URL to fetch quotes from.
+ * @returns {Promise<Array<{quote: string, author: string}>>} A promise that resolves with an array of quote objects.
  */
 const fetchQuotes = async (url) => {
   try {
@@ -49,46 +99,62 @@ const fetchQuotes = async (url) => {
     const $ = cheerio.load(html);
     return extractQuotes($);
   } catch (error) {
-    console.error(chalk.red('Error fetching quotes:'), error.message);
+    console.error(chalk.red("Error fetching quotes:"), error.message);
     throw error;
   }
 };
 
+// -----------------------------------------------------------------------------
+// Display Functions (Presentation Logic)
+// -----------------------------------------------------------------------------
+
 /**
- * Displays a quote in the console.
+ * Displays an ASCII art header using figlet and gradient-string.
  *
- * @param {Object} quote - Quote object containing quote and author.
+ * Clears the terminal and prints a colorful banner at the top.
  */
-const displayQuote = (quote) => {
-  clear();
-  console.log('');
-  console.log(
-      '           ',
-      chalk.cyan.bold(`“${quote.quote}”`),
-      ' - ',
-      chalk.green.italic(quote.author)
-  );
-  console.log(' ');
+const displayHeader = () => {
+  const banner = figlet.textSync("Quotes CLI", { horizontalLayout: "full" });
+  console.log(gradient.pastel.multiline(banner));
+  console.log("\n");
 };
 
 /**
- * Displays multiple quotes in the console.
+ * Displays a single quote inside a styled box.
  *
- * @param {Array} quotes - Array of quote objects.
+ * @param {{quote: string, author: string}} quoteObj - The quote object to display.
+ */
+const displayQuote = (quoteObj) => {
+  clear();
+  displayHeader();
+
+  const quoteText = gradient.summer(`"${quoteObj.quote}"`);
+  const authorText = chalk.greenBright.italic(`- ${quoteObj.author}`);
+  const fullQuote = `${quoteText}\n\n${authorText}`;
+
+  console.log(boxen(fullQuote, BOXEN_OPTIONS));
+};
+
+/**
+ * Displays multiple quotes, each within its own styled box.
+ *
+ * @param {Array<{quote: string, author: string}>} quotes - An array of quote objects.
  */
 const displayQuotes = (quotes) => {
   clear();
-  quotes.forEach((quote) => {
-    console.log('');
-    console.log(
-        '           ',
-        chalk.cyan.bold(`“${quote.quote}”`),
-        ' - ',
-        chalk.green.italic(quote.author)
-    );
-    console.log(' ');
+  displayHeader();
+
+  quotes.forEach((quoteObj) => {
+    const quoteText = gradient.summer(`"${quoteObj.quote}"`);
+    const authorText = chalk.greenBright.italic(`- ${quoteObj.author}`);
+    const fullQuote = `${quoteText}\n\n${authorText}`;
+    console.log(boxen(fullQuote, BOXEN_OPTIONS));
   });
 };
+
+// -----------------------------------------------------------------------------
+// Quote Retrieval Functions (Business Logic)
+// -----------------------------------------------------------------------------
 
 /**
  * Retrieves and displays a random quote.
@@ -98,125 +164,170 @@ const getRandomQuote = async () => {
     const randomPage = randomNumber(pageOptions);
     const url = `https://www.goodreads.com/quotes?page=${randomPage}`;
     const quotes = await fetchQuotes(url);
-
     if (quotes.length > 0) {
-      const randomIndex = randomNumber({
-        min: 0,
-        max: quotes.length - 1,
-        integer: true,
-      });
-      const selectedQuote = quotes[randomIndex];
+      const selectedQuote = quotes[getRandomIndex(quotes.length)];
       displayQuote(selectedQuote);
     } else {
-      console.log(chalk.yellow('No quotes found.'));
+      console.log(chalk.yellow("No quotes found."));
     }
   } catch (error) {
-    console.error(chalk.red('Failed to get a random quote.'), error.message);
+    console.error(chalk.red("Failed to get a random quote."), error.message);
   }
 };
 
 /**
- * Retrieves and displays a random quote by tag.
+ * Retrieves and displays a random quote for a given tag.
  *
- * @param {string} tag - Tag to search for.
+ * @param {string} tag - The tag to filter quotes.
  */
 const getRandomQuoteByTag = async (tag) => {
   try {
     const randomPage = randomNumber(pageOptions);
     const params = new URLSearchParams({ page: randomPage });
     const url = `https://www.goodreads.com/quotes/tag/${encodeURIComponent(
-        tag
+      tag,
     )}?${params.toString()}`;
     const quotes = await fetchQuotes(url);
-
     if (quotes.length > 0) {
-      const randomIndex = randomNumber({
-        min: 0,
-        max: quotes.length - 1,
-        integer: true,
-      });
-      const selectedQuote = quotes[randomIndex];
+      const selectedQuote = quotes[getRandomIndex(quotes.length)];
       displayQuote(selectedQuote);
     } else {
       console.log(chalk.yellow(`No quotes found for tag: ${tag}`));
     }
   } catch (error) {
     console.error(
-        chalk.red(`Failed to get a quote for tag: ${tag}`),
-        error.message
+      chalk.red(`Failed to get a quote for tag: ${tag}`),
+      error.message,
     );
   }
 };
 
 /**
- * Retrieves and displays a random quote by search query.
+ * Retrieves and displays a random quote based on a search query.
  *
- * @param {string} query - Search query.
+ * @param {string} query - The search query.
  */
 const getRandomQuoteBySearch = async (query) => {
   try {
     const randomPage = randomNumber(pageOptions);
     const params = new URLSearchParams({
-      commit: 'Search',
+      commit: "Search",
       page: randomPage,
       q: query,
-      'search[filters]': 'quote',
-      utf8: '✓',
+      "search[filters]": "quote",
+      utf8: "✓",
     });
     const url = `https://www.goodreads.com/quotes/search?${params.toString()}`;
     const quotes = await fetchQuotes(url);
-
     if (quotes.length > 0) {
-      const randomIndex = randomNumber({
-        min: 0,
-        max: quotes.length - 1,
-        integer: true,
-      });
-      const selectedQuote = quotes[randomIndex];
+      const selectedQuote = quotes[getRandomIndex(quotes.length)];
       displayQuote(selectedQuote);
     } else {
       console.log(chalk.yellow(`No quotes found for search: ${query}`));
     }
   } catch (error) {
     console.error(
-        chalk.red(`Failed to get a quote for search: ${query}`),
-        error.message
+      chalk.red(`Failed to get a quote for search: ${query}`),
+      error.message,
     );
   }
 };
 
 /**
- * Retrieves and displays a specified number of quotes.
+ * Retrieves and displays multiple quotes.
  *
- * @param {number} n - Number of quotes to retrieve.
+ * @param {number} count - The number of quotes to display.
  */
-const getBulkQuotes = async (n) => {
+const getBulkQuotes = async (count) => {
   try {
     const randomPage = randomNumber(pageOptions);
     const url = `https://www.goodreads.com/quotes?page=${randomPage}`;
     const quotes = await fetchQuotes(url);
-
     if (quotes.length > 0) {
-      const selectedQuotes = quotes.slice(0, n);
+      const selectedQuotes = quotes.slice(0, count);
       displayQuotes(selectedQuotes);
     } else {
-      console.log(chalk.yellow('No quotes found.'));
+      console.log(chalk.yellow("No quotes found."));
     }
   } catch (error) {
-    console.error(chalk.red('Failed to get bulk quotes.'), error.message);
+    console.error(chalk.red("Failed to get bulk quotes."), error.message);
   }
 };
 
 /**
- * Handles the request for quotes based on the command.
+ * Retrieves and displays multiple quotes for a given tag.
  *
- * @param {string|null} subCommand - Sub-command.
- * @param {string|null} parameter - Parameter for the sub-command.
+ * @param {string} tag - The tag to filter quotes.
+ * @param {number} count - The number of quotes to display.
+ */
+const getBulkQuotesByTag = async (tag, count) => {
+  try {
+    const randomPage = randomNumber(pageOptions);
+    const params = new URLSearchParams({ page: randomPage });
+    const url = `https://www.goodreads.com/quotes/tag/${encodeURIComponent(
+      tag,
+    )}?${params.toString()}`;
+    const quotes = await fetchQuotes(url);
+    if (quotes.length > 0) {
+      const selectedQuotes = quotes.slice(0, count);
+      displayQuotes(selectedQuotes);
+    } else {
+      console.log(chalk.yellow(`No quotes found for tag: ${tag}`));
+    }
+  } catch (error) {
+    console.error(
+      chalk.red(`Failed to get quotes for tag: ${tag}`),
+      error.message,
+    );
+  }
+};
+
+/**
+ * Retrieves and displays multiple quotes based on a search query.
+ *
+ * @param {string} query - The search query.
+ * @param {number} count - The number of quotes to display.
+ */
+const getBulkQuotesBySearch = async (query, count) => {
+  try {
+    const randomPage = randomNumber(pageOptions);
+    const params = new URLSearchParams({
+      commit: "Search",
+      page: randomPage,
+      q: query,
+      "search[filters]": "quote",
+      utf8: "✓",
+    });
+    const url = `https://www.goodreads.com/quotes/search?${params.toString()}`;
+    const quotes = await fetchQuotes(url);
+    if (quotes.length > 0) {
+      const selectedQuotes = quotes.slice(0, count);
+      displayQuotes(selectedQuotes);
+    } else {
+      console.log(chalk.yellow(`No quotes found for search: ${query}`));
+    }
+  } catch (error) {
+    console.error(
+      chalk.red(`Failed to get quotes for search: ${query}`),
+      error.message,
+    );
+  }
+};
+
+// -----------------------------------------------------------------------------
+// Exported Request Handlers for CLI Commands
+// -----------------------------------------------------------------------------
+
+/**
+ * Handles fetching a single random quote, a quote by tag, or by search query.
+ *
+ * @param {string|null} subCommand - "tag", "search", or null.
+ * @param {string|null} parameter - The tag name or search term.
  */
 export const requestQuotes = async (subCommand, parameter) => {
-  if (subCommand === 'tag' && parameter) {
+  if (subCommand === "tag" && parameter) {
     await getRandomQuoteByTag(parameter);
-  } else if (subCommand === 'search' && parameter) {
+  } else if (subCommand === "search" && parameter) {
     await getRandomQuoteBySearch(parameter);
   } else {
     await getRandomQuote();
@@ -224,10 +335,30 @@ export const requestQuotes = async (subCommand, parameter) => {
 };
 
 /**
- * Handles the request for bulk quotes.
+ * Handles fetching multiple random quotes.
  *
  * @param {number} count - Number of quotes to retrieve.
  */
 export const requestBulkQuotes = async (count) => {
   await getBulkQuotes(count);
+};
+
+/**
+ * Handles fetching multiple quotes for a specific tag.
+ *
+ * @param {string} tag - The tag to filter quotes.
+ * @param {number} count - Number of quotes to retrieve.
+ */
+export const requestBulkQuotesByTag = async (tag, count) => {
+  await getBulkQuotesByTag(tag, count);
+};
+
+/**
+ * Handles fetching multiple quotes based on a search query.
+ *
+ * @param {string} query - The search query.
+ * @param {number} count - Number of quotes to retrieve.
+ */
+export const requestBulkQuotesBySearch = async (query, count) => {
+  await getBulkQuotesBySearch(query, count);
 };

@@ -9,16 +9,24 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["quotes-cli", "nodejs", "quotes", "random quote generator"],
+  "keywords": [
+    "quotes-cli",
+    "nodejs",
+    "quotes",
+    "random quote generator"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.7.7",
-    "chalk": "^5.3.0",
+    "axios": "^1.7.9",
+    "boxen": "^8.0.1",
+    "chalk": "^5.4.1",
     "cheerio": "^1.0.0",
     "clear": "^0.1.0",
     "commander": "^12.1.0",
-    "random-number": "0.0.9"
+    "figlet": "^1.8.0",
+    "gradient-string": "^3.0.0",
+    "random-number": "^0.0.9"
   },
   "repository": {
     "type": "git",
