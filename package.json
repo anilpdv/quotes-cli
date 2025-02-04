@@ -1,6 +1,6 @@
 {
   "name": "quotes-cli",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Generates random quotes",
   "main": "commands.js",
   "preferGlobal": true,
@@ -26,8 +26,12 @@
     "cheerio": "^1.0.0",
     "clear": "^0.1.0",
     "commander": "^12.1.0",
+    "dictionary-en": "^4.0.0",
     "figlet": "^1.8.0",
     "gradient-string": "^3.0.0",
+    "node-cache": "^5.1.2",
+    "nspell": "^2.1.5",
+    "ora": "^8.2.0",
     "random-number": "^0.0.9"
   },
   "repository": {

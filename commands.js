@@ -2,14 +2,12 @@
 /**
  * index.js
  *
- * This is the CLI entry point for the Quotes CLI application.
- * It uses Commander to define the available commands and routes
- * them to the appropriate request handler functions exported from
- * the routes.data.js module.
+ * CLI entry point for the Quotes CLI application.
+ * Uses Commander to define and route commands.
  */
 
-import { Command } from "commander"; // For building CLI commands
-import chalk from "chalk"; // For terminal string styling
+import { Command } from "commander";
+import chalk from "chalk";
 import {
   requestQuotes,
   requestBulkQuotes,
@@ -17,15 +15,9 @@ import {
   requestBulkQuotesBySearch,
 } from "./src/routes.data.js";
 
-// Create a new Commander program instance
 const program = new Command();
 
-// Set the version and description of the CLI application
 program.version("1.1.0").description("A beautifully styled quotes CLI");
-
-// -----------------------------------------------------------------------------
-// CLI Command Definitions
-// -----------------------------------------------------------------------------
 
 // Command: Get a single random quote
 program
@@ -62,7 +54,7 @@ program
     }
   });
 
-// Command: Get multiple random quotes (bulk), maximum of 10
+// Command: Get multiple random quotes (bulk, max 10)
 program
   .command("bulk <number>")
   .alias("b")
@@ -76,7 +68,7 @@ program
     }
   });
 
-// Command: Get multiple quotes by tag (bulk), maximum of 10
+// Command: Get multiple quotes by tag (bulk, max 10)
 program
   .command("bulk-tag <name> <number>")
   .alias("bt")
@@ -90,7 +82,7 @@ program
     }
   });
 
-// Command: Get multiple quotes by search query (bulk), maximum of 10
+// Command: Get multiple quotes by search query (bulk, max 10)
 program
   .command("bulk-search <name> <number>")
   .alias("bs")
@@ -104,7 +96,4 @@ program
     }
   });
 
-// -----------------------------------------------------------------------------
-// Parse the command-line arguments
-// -----------------------------------------------------------------------------
 program.parse(process.argv);
