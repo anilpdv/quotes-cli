@@ -297,21 +297,15 @@ const getRandomQuoteByTag = async (tag) => {
  * @param {string} query - The search query.
  */
 const getRandomQuoteBySearch = async (query) => {
-  const correctedQuery = correctInput(query);
-  if (correctedQuery !== query) {
-    console.log(
-      chalk.green(`Auto-corrected search query: "${correctedQuery}"`),
-    );
-  }
   const spinner = ora(
-    `Fetching a random quote for search "${correctedQuery}"...`,
+    `Fetching a random quote for search "${query}"...`,
   ).start();
   try {
     const randomPage = getRandomPage();
     const params = {
       commit: "Search",
       page: randomPage,
-      q: correctedQuery,
+      q: query,
       "search[filters]": "quote",
       utf8: "✓",
     };
@@ -322,10 +316,10 @@ const getRandomQuoteBySearch = async (query) => {
       const selectedQuote = quotes[getRandomIndex(quotes.length)];
       displayQuote(selectedQuote);
     } else {
-      spinner.info(`No quotes found for search: ${correctedQuery}`);
+      spinner.info(`No quotes found for search: ${query}`);
     }
   } catch (error) {
-    spinner.fail(`Failed to fetch a quote for search: ${correctedQuery}`);
+    spinner.fail(`Failed to fetch a quote for search: ${query}`);
     console.error(chalk.red("Error:"), error.message);
   }
 };
@@ -393,21 +387,15 @@ const getBulkQuotesByTag = async (tag, count) => {
  * @param {number} count - Number of quotes.
  */
 const getBulkQuotesBySearch = async (query, count) => {
-  const correctedQuery = correctInput(query);
-  if (correctedQuery !== query) {
-    console.log(
-      chalk.green(`Auto-corrected search query: "${correctedQuery}"`),
-    );
-  }
   const spinner = ora(
-    `Fetching multiple quotes for search "${correctedQuery}"...`,
+    `Fetching multiple quotes for search "${query}"...`,
   ).start();
   try {
     const randomPage = getRandomPage();
     const params = {
       commit: "Search",
       page: randomPage,
-      q: correctedQuery,
+      q: query,
       "search[filters]": "quote",
       utf8: "✓",
     };
@@ -417,10 +405,10 @@ const getBulkQuotesBySearch = async (query, count) => {
       spinner.succeed("Quotes fetched!");
       displayQuotes(quotes.slice(0, count));
     } else {
-      spinner.info(`No quotes found for search: ${correctedQuery}`);
+      spinner.info(`No quotes found for search: ${query}`);
     }
   } catch (error) {
-    spinner.fail(`Failed to fetch quotes for search: ${correctedQuery}`);
+    spinner.fail(`Failed to fetch quotes for search: ${query}`);
     console.error(chalk.red("Error:"), error.message);
   }
 };
